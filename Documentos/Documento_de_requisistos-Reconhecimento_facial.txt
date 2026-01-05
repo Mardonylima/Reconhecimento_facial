@@ -1,0 +1,141 @@
+- documentos de requisitos -
+
+- Reconhecimento facial -
+
+1.1. Introdução
+
+Objetivo do Desenvolvimento 
+
+O objetivo deste projeto é desenvolver um software de reconhecimento facial que utiliza Visão 
+Computacional para fins educativos. O software será capaz de detectar rostos humanos em tempo real 
+e identificar o usuário(a) com base em características faciais únicas. A solução tem como meta proporcionar 
+um meio automatizado de identificação de pessoas, sem a necessidade de interação manual, utilizando 
+a análise da geometria do rosto.
+
+1.2. Definições e Abreviaturas
+
+Como o Reconhecimento Facial Funciona?
+
+O reconhecimento facial é um processo baseado em várias etapas. A seguir, detalhamos como o 
+sistema de reconhecimento facial será estruturado:
+
+Etapas do Processo de Reconhecimento Facial:
+
+  1. Detecção e Captura do Rosto
+     A câmera do dispositivo detecta e localiza um ou mais rostos em uma imagem, 
+	podendo ser capturado tanto de frente quanto de perfil. Esse processo é realizado 
+	em tempo real e é crucial para a precisão da identificação subsequente.
+
+  2. Análise do Rosto
+     Após a captura, a imagem é analisada em formato 2D. O sistema identifica pontos-chave 
+	na geometria facial, como a distância entre os olhos, a profundidade das órbitas oculares, 
+	a distância entre a testa e o queixo, além do contorno das maçãs do rosto, lábios, orelhas e 
+	mandíbula. Esses pontos de referência são essenciais para distinguir um rosto de outro.
+
+  3. Conversão da Imagem em Dados
+     O sistema converte as características faciais do rosto em dados digitais, representados 
+	por uma fórmula matemática. Esses dados, conhecidos como "impressão facial", são únicos para 
+	cada pessoa, assim como as impressões digitais.
+
+  4. Comparação com o Banco de Dados
+     A impressão facial extraída é comparada com um banco de dados previamente armazenado. 
+	Se houver correspondência com algum registro, o usuário é identificado com sucesso.
+
+1.3. Referências
+
+Reconhecimento Facial
+
+Kaspersky - O que é Reconhecimento Facial: 
+
+https://www.kaspersky.com.br/resource-center/definitions/what-is-facial-recognition
+
+Aprendizado de Máquinas
+
+IBM - O que é Aprendizado de Máquinas? : https://www.ibm.com/br-pt/think/topics/machine-learning
+
+Asterics - Visão Computacional: https://www.asterics.eu/develop/plugin/Computer-Vision.html#objective
+
+
+2. Visão Geral
+
+2.1. Arquitetura de Software
+
+A arquitetura do sistema será baseada em uma estrutura modular. O sistema será desenvolvido 
+como uma aplicação local (desktop) com a possibilidade de integração com plataformas web no futuro. 
+Inicialmente, o foco será em um sistema simples, onde a aplicação será instalada em dispositivos com 
+câmera (PCs ou dispositivos móveis). Para uma possível expansão, o sistema poderá ser adaptado para operar 
+em um ambiente distribuído, permitindo acesso remoto e processamento em servidores.
+
+Componentes principais da arquitetura:
+
+* Módulo de Captura de Imagem: Responsável por capturar a imagem em tempo real.
+
+* Módulo de Processamento de Imagem: Realiza a análise facial e converte a imagem em dados.
+
+* Módulo de Comparação e Identificação: Compara a impressão facial gerada com as existentes no banco de dados.
+
+* Interface do Usuário: Permite interações simples, como iniciar o processo de reconhecimento, 
+visualizar a identificação, entre outros.
+
+
+2.2. Premissas de Desenvolvimento
+
+* Desempenho: O sistema deve ser capaz de realizar o reconhecimento facial em tempo real, com um atraso 
+mínimo entre a captura da imagem e a identificação.
+
+* Plataforma: Inicialmente será uma aplicação desktop, compatível com os principais sistemas operacionais 
+(Windows, macOS, Linux).
+
+* Precisão: O sistema deverá atingir um índice de acerto de pelo menos 95% em condições ideais de iluminação.
+
+* Privacidade e Segurança: Os dados faciais serão tratados de forma a garantir a privacidade do usuário, 
+com criptografia para o armazenamento das impressões faciais no banco de dados.
+
+
+3. Requisitos do Software
+
+3.1. Regras de Negócio (Opcional)
+
+* O software deve ser capaz de realizar a autenticação de um usuário apenas se a impressão facial 
+correspondente for detectada no banco de dados.
+
+* O sistema deve permitir a adição de novos usuários ao banco de dados por meio da captura de novas impressões faciais.
+
+
+3.2. Requisitos Funcionais
+
+* RF001 - Captura de Imagem Facial
+  O sistema deve capturar a imagem facial do usuário utilizando a câmera do dispositivo.
+  Critérios de Aceitação: O rosto do usuário deve ser detectado automaticamente na tela.
+
+* RF002 - Análise Facial
+  O sistema deve analisar as características faciais do usuário, convertendo as informações em dados numéricos.
+  Critérios de Aceitação: O sistema deve identificar os principais pontos de referência faciais e 
+  gerar uma impressão facial única.
+
+* RF003 - Comparação com Banco de Dados
+  O sistema deve comparar a impressão facial gerada com as existentes no banco de dados.
+  Critérios de Aceitação: O sistema deve retornar a identidade do usuário se houver uma 
+  correspondência no banco de dados.
+
+* RF004 - Registro de Usuário
+  O sistema deve permitir que um novo usuário seja registrado, capturando sua impressão facial e armazenando-a 
+  no banco de dados.
+  Critérios de Aceitação: A impressão facial deve ser registrada com sucesso e associada ao nome do usuário.
+
+
+3.3. Requisitos Não Funcionais
+
+* RNF001 - Desempenho
+  O sistema deve ser capaz de realizar o processo de captura, análise e comparação em menos de 3 segundos 
+  em condições ideais de operação.
+
+* RNF002 - Segurança
+  As impressões faciais dos usuários devem ser armazenadas em formato criptografado para garantir a privacidade dos dados.
+
+* RNF003 - Usabilidade
+  A interface do usuário deve ser simples e intuitiva, permitindo que qualquer pessoa consiga utilizar
+   o sistema sem necessidade de treinamento prévio.
+
+* RNF004 - Portabilidade
+  O sistema deve ser compatível com os principais sistemas operacionais: Windows, macOS e Linux.
