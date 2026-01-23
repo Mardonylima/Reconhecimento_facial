@@ -2,7 +2,7 @@ services:
   app:
     build:
       context: ..
-      dockerfile: src/Dockerfile
+      dockerfile: app/Dockerfile
     container_name: reconhecimento_facial_app
     env_file:
       - .env
