@@ -8,6 +8,7 @@ import org.bytedeco.javacv.CanvasFrame;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.FrameGrabber;
 import org.bytedeco.javacv.OpenCVFrameConverter;
+import org.bytedeco.javacv.OpenCVFrameGrabber;
 import static org.bytedeco.opencv.global.opencv_imgcodecs.imwrite;
 import static org.bytedeco.opencv.global.opencv_imgproc.COLOR_BGR2GRAY;
 import static org.bytedeco.opencv.global.opencv_imgproc.cvtColor;
@@ -22,7 +23,7 @@ import org.bytedeco.opencv.opencv_objdetect.CascadeClassifier;
 
 public class Capture {
     
-    @SuppressWarnings("null")
+    //@SuppressWarnings("null")
 
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(Capture.class.getName());
 
@@ -31,7 +32,7 @@ public class Capture {
         // Inicializa a captura de vídeo
         KeyEvent tecla = null;
         OpenCVFrameConverter.ToMat converteMat = new OpenCVFrameConverter.ToMat();
-        FrameGrabber camera = FrameGrabber.createDefault(0);
+        OpenCVFrameGrabber camera = new OpenCVFrameGrabber(0);
         camera.start();
 
         // Carregar o classificador pré-treinado para detecção facial
@@ -41,17 +42,16 @@ public class Capture {
         CanvasFrame cFrame = new CanvasFrame("Reconhecimento Facial", CanvasFrame.getDefaultGamma() / camera.getGamma());
         Frame frameCapturado = null;
         Mat imagemColorida = null;
+        Mat imagemCinza = new Mat();
+        int numeroAmostras = 25;
+        int amostra = 1;
+        // Solicitar o ID do usuário para nomear as imagens capturadas
+        logger.log(Level.INFO,"Solicitando ID do usuário: ");
+        Scanner cadastro = new Scanner(System.in); 
+        int idPessoa = cadastro.nextInt();
             // Loop para capturar e processar os frames da câmera
             while ((frameCapturado = camera.grab()) != null) {
                 imagemColorida = converteMat.convert(frameCapturado);
-                Mat imagemCinza = new Mat();
-                int numeroAmostras = 25;
-                int amostra = 1;
-                // Solicitar o ID do usuário para nomear as imagens capturadas
-                // desde que criei essas proximas 3 linhas o programa pede o ID a cada frame, corrigir isso depois
-                logger.log(Level.INFO,"Solicitando ID do usuário: ");
-                Scanner cadastro = new Scanner(System.in); 
-                int idPessoa = cadastro.nextInt();
                 cvtColor(imagemColorida, imagemCinza, COLOR_BGR2GRAY);
                 // Detectar faces na imagem em escala de cinza
                 RectVector facesDetectadas = new RectVector();
@@ -66,14 +66,13 @@ public class Capture {
                     // Extrair a face capturada
                     Mat faceCapturada = new Mat(imagemCinza, dadosFace);
                     resize(faceCapturada, faceCapturada, new Size(160, 160));
-                    // Salvar a face capturada como uma imagem
                     if (tecla == null){
                         tecla = cFrame.waitKey(5);
                     }
                     // Verificar se a tecla 'q' foi pressionada para capturar a foto
                     if (tecla != null && tecla.getKeyChar() == 'q' && amostra <= numeroAmostras) {
-                        // ainda não ta salvando as imagens.
-                        imwrite("src/main/java/com/fotos/pessoa." + idPessoa + "." + amostra + ".jpg", faceCapturada); // refazer o caminho
+                        // Salvar a face capturada como uma imagem
+                        imwrite("src/main/java/com/fotos/pessoa." + idPessoa + "." + amostra + ".jpg", faceCapturada);
                         logger.log(Level.INFO,"Foto {0} capturada com sucesso\n", amostra);
                         amostra++;
                             
