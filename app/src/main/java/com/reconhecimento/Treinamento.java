@@ -18,7 +18,7 @@ import org.bytedeco.opencv.opencv_face.LBPHFaceRecognizer;
 
 public class Treinamento {
     public static void main(String[] args) {
-        File diretorio = new File("src\\main\\java\\com\\fotos"); // C:\Users\cripm\OneDrive\Área de Trabalho\Reconhecimento_facial\app\src\main\java\com\fotos
+        File diretorio = new File(System.getProperty("user.dir") + "/src/main/java/com/fotos"); // C:\Users\cripm\OneDrive\Área de Trabalho\Reconhecimento_facial\app\src\main\java\com\fotos
         FilenameFilter filtroImagem;
         filtroImagem = new FilenameFilter() {
             @Override
@@ -33,6 +33,13 @@ public class Treinamento {
         int contador = 0;
         for (File imagem: arquivos) {
             Mat foto = imread(imagem.getAbsolutePath(), IMREAD_GRAYSCALE);
+                if (foto.empty()) {
+                    System.out.println("Erro ao carregar a imagem: " + imagem.getAbsolutePath());
+                    continue;
+                }
+                else {
+                    System.out.println("Imagem carregada com sucesso: " + imagem.getAbsolutePath());
+                }
             int classe = Integer.parseInt(imagem.getName().split("\\.")[1]);
             resize(foto, foto, new Size(160,160));
             fotos.put(contador, foto);
@@ -40,12 +47,12 @@ public class Treinamento {
             contador++;            
         }
 
-        FaceRecognizer iegenfaces = EigenFaceRecognizer.create();
+        FaceRecognizer eigenfaces = EigenFaceRecognizer.create();
         FaceRecognizer fisherfaces = FisherFaceRecognizer.create();
         FaceRecognizer lbph = LBPHFaceRecognizer.create();
 
-        iegenfaces.train(fotos, rotulos);
-        iegenfaces.save("src/main/java/com/reconhecimento/recursos/treinamentoEigenfaces.yml");
+        eigenfaces.train(fotos, rotulos);
+        eigenfaces.save("src/main/java/com/reconhecimento/recursos/treinamentoEigenfaces.yml");
         fisherfaces.train(fotos, rotulos);
         fisherfaces.save("src/main/java/com/reconhecimento/recursos/treinamentoFisherfaces.yml");
         lbph.train(fotos, rotulos);
