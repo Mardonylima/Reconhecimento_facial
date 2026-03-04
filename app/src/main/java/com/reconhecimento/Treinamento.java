@@ -18,7 +18,7 @@ import org.bytedeco.opencv.opencv_face.LBPHFaceRecognizer;
 
 public class Treinamento {
     public static void main(String[] args) {
-        File diretorio = new File(System.getProperty("user.dir") + "/src/main/java/com/fotos"); // C:\Users\cripm\OneDrive\Área de Trabalho\Reconhecimento_facial\app\src\main\java\com\fotos
+        File diretorio = new File(System.getProperty("user.dir") + "/src/main/java/com/fotos");
         FilenameFilter filtroImagem;
         filtroImagem = new FilenameFilter() {
             @Override
@@ -52,11 +52,11 @@ public class Treinamento {
         FaceRecognizer lbph = LBPHFaceRecognizer.create();
 
         eigenfaces.train(fotos, rotulos);
-        eigenfaces.save("src/main/java/com/reconhecimento/recursos/treinamentoEigenfaces.yml");
+        eigenfaces.save("C:\\Projetos\\Reconhecimento_facial\\app\\src\\main\\java\\com\\resource\\treinamentoEigenfaces.yml");
         fisherfaces.train(fotos, rotulos);
-        fisherfaces.save("src/main/java/com/reconhecimento/recursos/treinamentoFisherfaces.yml");
+        fisherfaces.save("C:\\Projetos\\Reconhecimento_facial\\app\\src\\main\\java\\com\\resource\\treinamentoFisherfaces.yml");
         lbph.train(fotos, rotulos);
-        lbph.save("src/main/java/com/reconhecimento/recursos/treinamentoLBPH.yml");
+        lbph.save("C:\\Projetos\\Reconhecimento_facial\\app\\src\\main\\java\\com\\resource\\treinamentoLBPH.yml");
 
 
     }
