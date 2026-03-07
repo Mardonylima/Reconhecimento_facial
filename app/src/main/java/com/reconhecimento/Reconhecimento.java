@@ -1,31 +1,35 @@
 package com.reconhecimento;
 
 import java.awt.event.KeyEvent;
-import java.util.Scanner;
-import java.util.logging.Level;
 
+import org.bytedeco.javacpp.DoublePointer;
+import org.bytedeco.javacpp.IntPointer;
 import org.bytedeco.javacv.CanvasFrame;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.FrameGrabber;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameGrabber;
-import static org.bytedeco.opencv.global.opencv_imgcodecs.imwrite;
 import static org.bytedeco.opencv.global.opencv_imgproc.COLOR_BGR2GRAY;
+import static org.bytedeco.opencv.global.opencv_imgproc.FONT_HERSHEY_PLAIN;
 import static org.bytedeco.opencv.global.opencv_imgproc.cvtColor;
+import static org.bytedeco.opencv.global.opencv_imgproc.putText;
 import static org.bytedeco.opencv.global.opencv_imgproc.rectangle;
 import static org.bytedeco.opencv.global.opencv_imgproc.resize;
 import org.bytedeco.opencv.opencv_core.Mat;
+import org.bytedeco.opencv.opencv_core.Point;
 import org.bytedeco.opencv.opencv_core.Rect;
 import org.bytedeco.opencv.opencv_core.RectVector;
 import org.bytedeco.opencv.opencv_core.Scalar;
 import org.bytedeco.opencv.opencv_core.Size;
+import org.bytedeco.opencv.opencv_face.EigenFaceRecognizer;
+import org.bytedeco.opencv.opencv_face.FaceRecognizer;
 import org.bytedeco.opencv.opencv_objdetect.CascadeClassifier;
 
-public class Capture {
+public class Reconhecimento {
     
     //@SuppressWarnings("null")
 
-    private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(Capture.class.getName());
+    private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(Reconhecimento.class.getName());
 
     public static void main(String[] args) throws FrameGrabber.Exception, InterruptedException{
         
@@ -33,21 +37,18 @@ public class Capture {
         KeyEvent tecla = null;
         OpenCVFrameConverter.ToMat converteMat = new OpenCVFrameConverter.ToMat();
         OpenCVFrameGrabber camera = new OpenCVFrameGrabber(0);
+        String[] pessoas = {"", "Mardony", "Mardenya"};
         camera.start();
 
         // Carregar o classificador pré-treinado para detecção facial
         CascadeClassifier detectorFace = new CascadeClassifier("src/main/java/com/resource/haarcascade_frontalface_alt.xml");
-
+        FaceRecognizer reconhecedor = EigenFaceRecognizer.create();
+        reconhecedor.read("src/main/java/com/resource/treinamentoEigenfaces.yml");
         // Criar a janela para exibir o vídeo
         CanvasFrame cFrame = new CanvasFrame("Reconhecimento Facial", CanvasFrame.getDefaultGamma() / camera.getGamma());
         Frame frameCapturado = null;
         Mat imagemColorida = null;
-        int numeroAmostras = 25;
-        int amostra = 1;
-        // Solicitar o ID do usuário para nomear as imagens capturadas
-        logger.log(Level.INFO,"Solicitando ID do usuário: ");
-        Scanner cadastro = new Scanner(System.in); 
-        int idPessoa = cadastro.nextInt();
+        
             // Loop para capturar e processar os frames da câmera
             while ((frameCapturado = camera.grab()) != null) {
                 imagemColorida = converteMat.convert(frameCapturado);
@@ -56,9 +57,6 @@ public class Capture {
                 // Detectar faces na imagem em escala de cinza
                 RectVector facesDetectadas = new RectVector();
                 detectorFace.detectMultiScale(imagemCinza, facesDetectadas, 1.1, 1, 0, new Size(150, 150), new Size(500, 500));
-                if (tecla == null){
-                    tecla = cFrame.waitKey(5);
-                }
                 // Desenhar retângulos ao redor das faces detectadas
                 for (int i = 0; i < facesDetectadas.size(); i++) {
                     Rect dadosFace = facesDetectadas.get(i);
@@ -66,29 +64,24 @@ public class Capture {
                     // Extrair a face capturada
                     Mat faceCapturada = new Mat(imagemCinza, dadosFace);
                     resize(faceCapturada, faceCapturada, new Size(160, 160));
-                    if (tecla == null){
-                        tecla = cFrame.waitKey(5);
+                    // Realizar o reconhecimento facial
+                    IntPointer rotulo = new IntPointer(1);
+                    DoublePointer confiança = new DoublePointer(1);
+                    reconhecedor.predict(faceCapturada, rotulo, confiança);
+                    int predicao = rotulo.get(0);
+                    String nome; 
+                    if (predicao == -1) {
+                        nome = "Desconhecido";
+                    } else {
+                        nome = pessoas[predicao] + " - " + String.format("%.2f", confiança.get(0));
                     }
-                    // Verificar se a tecla 'q' foi pressionada para capturar a foto
-                    if (tecla != null && tecla.getKeyChar() == 'q' && amostra <= numeroAmostras) {
-                        // Salvar a face capturada como uma imagem
-                        imwrite("src/main/java/com/fotos/pessoa." + idPessoa + "." + amostra + ".jpg", faceCapturada);
-                        logger.log(Level.INFO,"Foto {0} capturada com sucesso\n", amostra);
-                        amostra++;
-                            
-                    }
-                    tecla = null;
-                       
-                }
-                if (tecla == null){
-                    tecla = cFrame.waitKey(20);
+                    // Exibir o nome da pessoa reconhecida na imagem
+                    int X = Math.max(dadosFace.tl().x() - 10, 0);
+                    int Y = Math.max(dadosFace.tl().y() - 10, 0);
+                    putText(imagemColorida, nome, new Point(X, Y), FONT_HERSHEY_PLAIN, 1.5, new Scalar(0, 255, 0, 0), 2, 8, false);
                 }
                 if (cFrame.isVisible()) {
                     cFrame.showImage(frameCapturado);
-                }
-
-                if (amostra > numeroAmostras) {
-                    break;
                 }
             }
 
