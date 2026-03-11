@@ -1,7 +1,5 @@
 package com.reconhecimento;
 
-import java.awt.event.KeyEvent;
-
 import org.bytedeco.javacpp.DoublePointer;
 import org.bytedeco.javacpp.IntPointer;
 import org.bytedeco.javacv.CanvasFrame;
@@ -26,18 +24,14 @@ import org.bytedeco.opencv.opencv_face.FaceRecognizer;
 import org.bytedeco.opencv.opencv_objdetect.CascadeClassifier;
 
 public class Reconhecimento {
-    
-    //@SuppressWarnings("null")
-
-    private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(Reconhecimento.class.getName());
 
     public static void main(String[] args) throws FrameGrabber.Exception, InterruptedException{
         
         // Inicializa a captura de vídeo
-        KeyEvent tecla = null;
+        
         OpenCVFrameConverter.ToMat converteMat = new OpenCVFrameConverter.ToMat();
         OpenCVFrameGrabber camera = new OpenCVFrameGrabber(0);
-        String[] pessoas = {"", "Mardony", "Mardenya"};
+        String[] pessoas = {"", "Mardony", "Mardenya", "Kewen"};
         camera.start();
 
         // Carregar o classificador pré-treinado para detecção facial
@@ -66,19 +60,19 @@ public class Reconhecimento {
                     resize(faceCapturada, faceCapturada, new Size(160, 160));
                     // Realizar o reconhecimento facial
                     IntPointer rotulo = new IntPointer(1);
-                    DoublePointer confiança = new DoublePointer(1);
-                    reconhecedor.predict(faceCapturada, rotulo, confiança);
+                    DoublePointer confianca = new DoublePointer(1);
+                    reconhecedor.predict(faceCapturada, rotulo, confianca);
                     int predicao = rotulo.get(0);
                     String nome; 
                     if (predicao == -1) {
                         nome = "Desconhecido";
                     } else {
-                        nome = pessoas[predicao] + " - " + String.format("%.2f", confiança.get(0));
+                        nome = pessoas[predicao] + " - " + String.format("%.2f", confianca.get(0));
                     }
                     // Exibir o nome da pessoa reconhecida na imagem
-                    int X = Math.max(dadosFace.tl().x() - 10, 0);
-                    int Y = Math.max(dadosFace.tl().y() - 10, 0);
-                    putText(imagemColorida, nome, new Point(X, Y), FONT_HERSHEY_PLAIN, 1.5, new Scalar(0, 255, 0, 0), 2, 8, false);
+                    int x = Math.max(dadosFace.tl().x() - 10, 0);
+                    int y = Math.max(dadosFace.tl().y() - 10, 0);
+                    putText(imagemColorida, nome, new Point(x, y), FONT_HERSHEY_PLAIN, 1.5, new Scalar(0, 255, 0, 0), 2, 8, false);
                 }
                 if (cFrame.isVisible()) {
                     cFrame.showImage(frameCapturado);
