@@ -1,99 +1,133 @@
 package com.reconhecimento;
 
 import java.awt.event.KeyEvent;
-import java.util.Scanner;
 import java.util.logging.Level;
 
 import org.bytedeco.javacv.CanvasFrame;
 import org.bytedeco.javacv.Frame;
-import org.bytedeco.javacv.FrameGrabber;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameGrabber;
-import static org.bytedeco.opencv.global.opencv_imgcodecs.imwrite;
-import static org.bytedeco.opencv.global.opencv_imgproc.COLOR_BGR2GRAY;
-import static org.bytedeco.opencv.global.opencv_imgproc.cvtColor;
-import static org.bytedeco.opencv.global.opencv_imgproc.rectangle;
-import static org.bytedeco.opencv.global.opencv_imgproc.resize;
 import org.bytedeco.opencv.opencv_core.Mat;
-import org.bytedeco.opencv.opencv_core.Rect;
 import org.bytedeco.opencv.opencv_core.RectVector;
-import org.bytedeco.opencv.opencv_core.Scalar;
-import org.bytedeco.opencv.opencv_core.Size;
 import org.bytedeco.opencv.opencv_objdetect.CascadeClassifier;
 
 public class Capture {
     
-    //@SuppressWarnings("null")
-
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(Capture.class.getName());
+    
+    public static void main(String[] args) {
+        try {
+            Contexto contexto = criarContexto();
+            obterIdUsuario(contexto);
+            inicializarCamera(contexto);
+            inicializarDetector(contexto);
+            inicializarJanela(contexto);
+            iniciarCaptura(contexto);
+            finalizarCaptura(contexto);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Ocorreu um erro inesperado: " + e.getMessage(), e);
+        }
+    }
 
-    public static void main(String[] args) throws FrameGrabber.Exception, InterruptedException{
+    
+    // Métodos refatorados para melhorar a legibilidade e organização do código
+
+
+    // Metodo para as variáveis necessárias para a captura de vídeo e processamento de imagens
+    public static class Contexto{
+        int idUsuario;
+        OpenCVFrameGrabber camera;
+        CascadeClassifier detector;
+        CanvasFrame janela;
+        OpenCVFrameConverter.ToMat conversor;
+        int numeroAmostras;
+        int amostrasColetadas;
+        KeyEvent tecla;
+        RectVector faces;
+        Frame frameAtual;
+        Mat imagemColorida;
+        Mat imagemCinza;
+        boolean executando;
+    }
+    
+    private static Contexto criarContexto() {
+        Contexto contexto = new Contexto();
+        contexto.idUsuario = 0;
+        contexto.camera = null;
+        contexto.detector = null;
+        contexto.janela = null;
+        contexto.conversor = new OpenCVFrameConverter.ToMat();
+        contexto.numeroAmostras = 25;
+        contexto.amostrasColetadas = 0;
+        contexto.tecla = null;
+        contexto.faces = new RectVector();
+        contexto.frameAtual = null;
+        contexto.imagemColorida = new Mat();
+        contexto.imagemCinza = new Mat();
+        contexto.executando = true;
         
-        // Inicializa a captura de vídeo
-        KeyEvent tecla = null;
-        OpenCVFrameConverter.ToMat converteMat = new OpenCVFrameConverter.ToMat();
-        OpenCVFrameGrabber camera = new OpenCVFrameGrabber(0);
-        camera.start();
-
-        // Carregar o classificador pré-treinado para detecção facial
-        CascadeClassifier detectorFace = new CascadeClassifier("src/main/java/com/resource/haarcascade_frontalface_alt.xml");
-
-        // Criar a janela para exibir o vídeo
-        CanvasFrame cFrame = new CanvasFrame("Reconhecimento Facial", CanvasFrame.getDefaultGamma() / camera.getGamma());
-        Frame frameCapturado = null;
-        Mat imagemColorida = null;
-        int numeroAmostras = 25;
-        int amostra = 1;
-        // Solicitar o ID do usuário para nomear as imagens capturadas
-        logger.log(Level.INFO,"Solicitando ID do usuário: ");
-        Scanner cadastro = new Scanner(System.in); 
-        int idPessoa = cadastro.nextInt();
-            // Loop para capturar e processar os frames da câmera
-            while ((frameCapturado = camera.grab()) != null) {
-                imagemColorida = converteMat.convert(frameCapturado);
-                Mat imagemCinza = new Mat();
-                cvtColor(imagemColorida, imagemCinza, COLOR_BGR2GRAY);
-                // Detectar faces na imagem em escala de cinza
-                RectVector facesDetectadas = new RectVector();
-                detectorFace.detectMultiScale(imagemCinza, facesDetectadas, 1.1, 1, 0, new Size(150, 150), new Size(500, 500));
-                if (tecla == null){
-                    tecla = cFrame.waitKey(5);
+        return contexto;
+    }
+    
+    // Método para obter o ID do usuário a partir do console
+    private static void obterIdUsuario(Contexto contexto) {
+        java.util.Scanner scanner = new java.util.Scanner(System.in);
+        contexto.idUsuario = -1; // valor inválido para entrar no loop
+        while (contexto.idUsuario <= 0) {
+            try {
+                logger.log(Level.INFO, "Digite um ID válido. Por favor, digite um número inteiro positivo.");
+                contexto.idUsuario = scanner.nextInt();
+                if (contexto.idUsuario <= 0) {
+                    logger.log(Level.WARNING, "ID do usuário deve ser um número inteiro positivo. Tente novamente.");
                 }
-                // Desenhar retângulos ao redor das faces detectadas
-                for (int i = 0; i < facesDetectadas.size(); i++) {
-                    Rect dadosFace = facesDetectadas.get(i);
-                    rectangle(imagemColorida, dadosFace, new Scalar(0, 0, 255, 0)); 
-                    // Extrair a face capturada
-                    Mat faceCapturada = new Mat(imagemCinza, dadosFace);
-                    resize(faceCapturada, faceCapturada, new Size(160, 160));
-                    if (tecla == null){
-                        tecla = cFrame.waitKey(5);
-                    }
-                    // Verificar se a tecla 'q' foi pressionada para capturar a foto
-                    if (tecla != null && tecla.getKeyChar() == 'q' && amostra <= numeroAmostras) {
-                        // Salvar a face capturada como uma imagem
-                        imwrite("src/main/java/com/fotos/pessoa." + idPessoa + "." + amostra + ".jpg", faceCapturada);
-                        logger.log(Level.INFO,"Foto {0} capturada com sucesso\n", amostra);
-                        amostra++;
-                            
-                    }
-                    tecla = null;
-                       
-                }
-                if (tecla == null){
-                    tecla = cFrame.waitKey(20);
-                }
-                if (cFrame.isVisible()) {
-                    cFrame.showImage(frameCapturado);
-                }
-
-                if (amostra > numeroAmostras) {
-                    break;
-                }
+            } catch (java.util.InputMismatchException e) {
+                logger.log(Level.SEVERE, "Entrada inválida. Por favor, digite um número inteiro positivo.");
+                scanner.nextLine(); // Limpar o buffer do scanner para evitar loop infinito
             }
+        }
+        // Nao usar o "scanner.close();" para fechar o programa pois pode causar problemas e não ler outras entradas no futuro
+    }
 
-        // Liberar recursos
-        camera.stop();
-        cFrame.dispose();
+    // Método para inicializar a câmera e configurar o FrameGrabber
+    private static void inicializarCamera(Contexto contexto) {
+        contexto.camera = new OpenCVFrameGrabber(0);
+        try {
+            contexto.camera.start();
+        } catch (org.bytedeco.javacv.FrameGrabber.Exception e) {
+            logger.log(Level.SEVERE, "Erro ao iniciar a câmera: " + e.getMessage());
+            System.exit(1);
+        }
+        // se houver mais de uma câmera, pode ser necessário ajustar o índice do FrameGrabber para acessar a câmera correta, fazer depois.
+    }
+
+    // Método para inicializar o detector de faces usando o CascadeClassifier
+    private static void inicializarDetector(Contexto contexto) {
+        contexto.detector = new CascadeClassifier("src/main/java/com/resource/haarcascade_frontalface_alt.xml");
+        if (contexto.detector.empty()) {
+            logger.log(Level.SEVERE, "Erro ao carregar o classificador Haar Cascade. Verifique o caminho do arquivo.");
+            System.exit(1);
+        }
+    }
+
+    // Método para iniciar o loop de captura de vídeo, detectar faces e exibir o resultado em uma janela
+    private static void inicializarJanela(Contexto contexto) {
+        contexto.janela = new CanvasFrame("Reconhecimento Facial", CanvasFrame.getDefaultGamma() / contexto.camera.getGamma());
+        contexto.janela.setDefaultCloseOperation(javax.swing.JFrame.EXIT_ON_CLOSE);
+        contexto.janela.setVisible(true);
+    }
+
+    // Método para processar cada frame capturado, detectar faces, desenhar retângulos, exibir a janela, e coletar amostras de rosto para treinamento
+    private static void iniciarCaptura(Contexto contexto) {
+        
+    }
+
+    // Método para liberar recursos e fechar a janela ao finalizar a captura
+    private static void finalizarCaptura(Contexto contexto) {
+        contexto.janela.dispose();
+        try {
+            contexto.camera.stop();
+        } catch (org.bytedeco.javacv.FrameGrabber.Exception e) {
+            logger.log(Level.SEVERE, "Erro ao parar a câmera: " + e.getMessage());
+        }
     }
 }
